@@ -1,10 +1,13 @@
-import pyttsx3
-import datetime
+import string
 
+import pyttsx3
+import requests
+import scipy as sp
+from nltk.corpus import stopwords
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[0].id)
+engine.setProperty('voice', voices[1].id)
 
 
 def speak(audio):
@@ -39,7 +42,7 @@ if __name__ == '__main__':
     engine = pyttsx3.init('sapi5')
     voices = engine.getProperty('voices')
     # print(voices[1].id)
-    engine.setProperty('voice', voices[0].id)
+    engine.setProperty('voice', voices[1].id)
 
 
     def speak(audio):
@@ -59,7 +62,7 @@ if __name__ == '__main__':
             speak("good evening")
            # speak("how may i help you")
 
-        speak("I am virtual councellor Sir. Please tell me how may I help you")
+        speak("I am virtual councillor Sir. Please tell me how may I help you")
 
 
     def takeCommand():
@@ -84,14 +87,22 @@ if __name__ == '__main__':
         return query
 
 
-    def sendEmail(to, content):
-        server = smtplib.SMTP('pk7982.gmail.com', 587)
-        server.ehlo()
-        server.starttls()
-        server.login('youremail@gmail.com', 'your-password')
-        server.sendmail('youremail@gmail.com', to, content)
-        server.close()
+    import smtplib, ssl
 
+    port = 587  # For starttls
+    smtp_server = "smtp.gmail.com"
+    sender_email = "pk7982@srmist.edu.in.com"
+    receiver_email = "prince.mac.march@gmail.com"
+    password = input("Type your password and press enter:")
+    message = """\
+       Subject:Hello sir this is a request from xyz person regarding a appointment."""
+    context = ssl.create_default_context()
+    with smtplib.SMTP(smtp_server, port) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message)
 
     if __name__ == "__main__":
         wishme()
@@ -116,13 +127,6 @@ if __name__ == '__main__':
 
             elif 'open stackoverflow' in query:
                 webbrowser.open("stackoverflow.com")
-
-            elif 'play music' in query:
-                music_dir = 'D:\\Non Critical\\songs\\Favorite Songs2'
-                songs = os.listdir(music_dir)
-                print(songs)
-                os.startfile(os.path.join(music_dir, songs[0]))
-
             elif 'the time' in query:
                 strTime = datetime.datetime.now().strftime("%H:%M:%S")
                 speak(f"Sir, the time is {strTime}")
@@ -131,7 +135,7 @@ if __name__ == '__main__':
                 codePath = "C:\\Users\\Haris\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
                 os.startfile(codePath)
 
-            elif 'email to harry' in query:
+            elif 'email to Shovi' in query:
                 try:
                     speak("What should I say?")
                     content = takeCommand()
@@ -143,8 +147,42 @@ if __name__ == '__main__':
                     speak("Sorry my friend Shovi bhai. I am not able to send this email")
 
 
+                    def open_camera():
+                        sp.run('start microsoft.windows.camera:', shell=True)
+
+def get_random_joke():
+    headers = {
+        'Accept': 'application/json'
+    }
+    res = requests.get("https://icanhazdadjoke.com/", headers=headers).json()
+    return res["joke"]
 
 
+def function_preprocess(mess):
+    nopunc = []
+    for char in mess:
+        if char not in string.punctuation:
+            nopunc.append(char)
+    nopunc = ''.join(nopunc)
+    clean = []
+    for word in nopunc.split():
+        word = word.lower()
+        if word not in stopwords.words('english'):
+            clean.append(word)
+    return clean
+
+
+from sklearn.pipeline import Pipeline
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import CountVectorizer as cv
+from sklearn.feature_extraction.text import TfidfTransformer
+
+# building our NLP model using naive bayes as classifier
+pipeline = Pipeline([('bow', cv(analyzer=function_preprocess)),
+                     ('tfidf', TfidfTransformer()),
+                     ('classifier', MultinomialNB()),
+                     ])
+pipeline.fit(data, emotional_class)
 
 
 
